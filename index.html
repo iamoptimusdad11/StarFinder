@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AR Constellation Finder</title>
+
+  <!-- A-Frame & AR.js -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.0/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0,0,0,0.6);
+      padding: 12px;
+      border-radius: 10px;
+      max-width: 260px;
+    }
+    button {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: #1e90ff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  <b>🌌 AR Constellation Finder</b><br>
+  Point your phone at the sky.<br>
+  <button onclick="requestPermission()">Enable Motion Access</button>
+  <div id="status">Waiting for location…</div>
+</div>
+
+<a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+  <a-entity id="sky"></a-entity>
+</a-scene>
+
+<script>
+// =====================
+// STAR DATA (expandable)
+// =====================
+const stars = [
+  { name:"Betelgeuse", ra:88.8, dec:7.4, mag:0.5, constellation:"Orion" },
+  { name:"Rigel", ra:78.6, dec:-8.2, mag:0.1, constellation:"Orion" },
+  { name:"Bellatrix", ra:81.2, dec:6.3, mag:1.6, constellation:"Orion" },
+  { name:"Saiph", ra:86.9, dec:-9.7, mag:2.0, constellation:"Orion" }
+];
+
+// Orion star connections (indexes in stars array)
+const constellationLines = {
+  Orion: [[0,1],[1,2],[2,3]]
+};
+
+let userLat = null;
+let userLon = null;
+
+// =====================
+// iOS Motion Permission
+// =====================
+function requestPermission() {
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission()
+      .then(response => {
+        if (response === "granted") {
+          document.getElementById("status").innerText = "Motion enabled";
+        }
+      })
+      .catch(console.error);
+  }
+}
+
+// =====================
+// GET USER LOCATION
+// =====================
+navigator.geolocation.getCurrentPosition(
+  pos => {
+    userLat = pos.coords.latitude;
+    userLon = pos.coords.longitude;
+    document.getElementById("status").innerText =
+      `Location acquired`;
+    renderSky();
+  },
+  err => {
+    document.getElementById("status").innerText =
+      "Location permission denied";
+  }
+);
+
+// =====================
+// RENDER SKY
+// =====================
+function renderSky() {
+  const sky = document.querySelector("#sky");
+  const now = new Date();
+
+  const starPositions = [];
+
+  stars.forEach((star, i) => {
+    const { altitude, azimuth } =
+      raDecToAltAz(star.ra, star.dec, userLat, userLon, now);
+
+    if (altitude <= 0) return; // hide stars below horizon
+
+    const pos = skyToXYZ(azimuth, altitude, 5);
+    starPositions[i] = pos;
+
+    const s = document.createElement("a-sphere");
+    s.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
+    s.setAttribute("radius", Math.max(0.02, 0.1 - star.mag * 0.02));
+    s.setAttribute("color", "white");
+    sky.appendChild(s);
+  });
+
+  // Draw constellation lines
+  Object.keys(constellationLines).forEach(name => {
+    constellationLines[name].forEach(pair => {
+      const start = starPositions[pair[0]];
+      const end = starPositions[pair[1]];
+      if (!start || !end) return;
+
+      const line = document.createElement("a-entity");
+      line.setAttribute(
+        "line",
+        `start: ${start.x} ${start.y} ${start.z};
+         end: ${end.x} ${end.y} ${end.z};
+         color: white`
+      );
+      sky.appendChild(line);
+    });
+  });
+}
+
+// =====================
+// ASTRONOMY MATH
+// =====================
+function raDecToAltAz(ra, dec, lat, lon, date) {
+  const rad = Math.PI / 180;
+  const d = (date - new Date(Date.UTC(2000,0,1,12))) / 86400000;
+
+  const gmst = 280.46061837 + 360.98564736629 * d;
+  const lst = (gmst + lon) % 360;
+
+  const ha = (lst - ra) * rad;
+  const decRad = dec * rad;
+  const latRad = lat * rad;
+
+  const alt = Math.asin(
+    Math.sin(decRad) * Math.sin(latRad) +
+    Math.cos(decRad) * Math.cos(latRad) * Math.cos(ha)
+  );
+
+  const az = Math.acos(
+    (Math.sin(decRad) - Math.sin(alt) * Math.sin(latRad)) /
+    (Math.cos(alt) * Math.cos(latRad))
+  );
+
+  return {
+    altitude: alt / rad,
+    azimuth: az / rad
+  };
+}
+
+function skyToXYZ(az, alt, dist) {
+  const rad = Math.PI / 180;
+  return {
+    x: dist * Math.cos(alt * rad) * Math.sin(az * rad),
+    y: dist * Math.sin(alt * rad),
+    z: -dist * Math.cos(alt * rad) * Math.cos(az * rad)
+  };
+}
+</script>
+
+</body>
+</html>
