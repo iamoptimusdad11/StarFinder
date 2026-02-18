@@ -1,197 +1,412 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>AR Constellation Finder</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Timeline — Creation Story</title>
 
-  <!-- A-Frame & AR.js -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.0/aframe/build/aframe-ar.js"></script>
+<style>
+/* ===== Base Styles ===== */
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  color: white;
+  background: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564') no-repeat center/cover fixed;
+}
 
-  <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      background: rgba(0,0,0,0.6);
-      padding: 12px;
-      border-radius: 10px;
-      max-width: 260px;
-    }
-    button {
-      margin-top: 8px;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      background: #1e90ff;
-      color: white;
-    }
-  </style>
+.overlay {
+  background: rgba(0,0,25,0.78);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* ===== Header ===== */
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  text-shadow: 0 0 12px rgba(255,255,255,0.6);
+}
+
+.subtitle {
+  opacity: 0.85;
+}
+
+/* ===== Timeline ===== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 700px;
+  margin: auto;
+}
+
+/* ===== Day Cards ===== */
+.day {
+  background: rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.day:hover {
+  transform: scale(1.02);
+  background: rgba(255,255,255,0.12);
+}
+
+.day h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.preview {
+  opacity: 0.8;
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+/* ===== Expandable Scripture ===== */
+.full-text {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s ease;
+  margin-top: 10px;
+  font-style: italic;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.day.active .full-text {
+  max-height: 300px;
+}
+
+/* ===== Footer ===== */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 0.85rem;
+  opacity: 0.7;
+.chatbot {
+  max-width: 700px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+#chatbox {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 15px;
+  min-height: 150px;
+  margin-bottom: 10px;
+  text-align: left;
+  overflow-y: auto;
+}
+
+.message {
+  margin: 8px 0;
+}
+
+.user { color: #9fd3ff; }
+.bot { color: #fff; }
+
+input {
+  width: 70%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  background: #4da6ff;
+  color: white;
+  cursor: pointer;
+}
+
+.bible-search {
+  max-width: 700px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+#searchInput {
+  width: 70%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+#results {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.result {
+  background: rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+/* ===== Parallax Hero ===== */
+.jumbotron {
+  height: 100vh;
+  background: url('images/jesus.jpg') center/cover no-repeat fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+/* Overlay for readability */
+.jumbo-overlay {
+  background: rgba(0,0,0,0.45);
+  padding: 30px;
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+}
+
+.jumbotron h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  text-shadow: 0 0 18px rgba(255,255,255,0.8);
+}
+
+.jumbotron p {
+  margin: 10px 0 20px;
+  font-size: 1.2rem;
+}
+
+.cta {
+  display: inline-block;
+  padding: 12px 22px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.cta:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.05);
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .jumbotron {
+    background-attachment: scroll; /* better performance on phones */
+  }
+
+  .jumbotron h1 {
+    font-size: 2rem;
+  }
+}
+.jumbotron {
+  animation: fadeIn 2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* ===== Desktop Enhancements ===== */
+@media (min-width: 700px) {
+  h1 { font-size: 3rem; }
+}
+</style>
 </head>
-<body>
 
-<div id="ui">
-  <b>🌌 AR Constellation Finder</b><br>
-  Point your phone at the sky.<br>
-  <button onclick="requestPermission()">Enable Motion Access</button>
-  <div id="status">Waiting for location…</div>
+<body>
+<section class="jumbotron">
+  <div class="jumbo-overlay">
+    <h1>✝️ Jesus Christ</h1>
+    <p>The Light of the World</p>
+    <a href="#timeline" class="cta">Explore Creation</a>
+  </div>
+</section>
+
+<div class="overlay">
+<section class="chatbot">
+  <h2>🤖 Ask the Bible</h2>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Ask a Bible question..." />
+  <button onclick="askBible()">Ask</button>
+</section>
+<section class="bible-search">
+  <h2>📖 Search the Bible</h2>
+  <input type="text" id="searchInput" placeholder="Search verse or keyword (e.g. love, John 3:16)" />
+  <button onclick="searchBible()">Search</button>
+  <div id="results"></div>
+</section>
+<header>
+  <h1>🌌 Genesis Timeline</h1>
+  <p class="subtitle">Tap a day to read the scripture</p>
+</header>
+
+<section class="timeline">
+<section id="timeline" class="timeline">
+
+  <div class="day">
+    <h2>Day 1 — Light</h2>
+    <div class="preview">Genesis 1:3–5</div>
+    <div class="full-text">
+      “And God said, ‘Let there be light,’ and there was light. God saw that the light was good, and He separated the light from the darkness.”
+    </div>
+  </div>
+
+  <div class="day">
+    <h2>Day 2 — Sky</h2>
+    <div class="preview">Genesis 1:6–8</div>
+    <div class="full-text">
+      God made the expanse and separated the waters under the expanse from the waters above it. And God called the expanse Heaven.
+    </div>
+  </div>
+
+  <div class="day">
+    <h2>Day 3 — Land & Vegetation</h2>
+    <div class="preview">Genesis 1:11–13</div>
+    <div class="full-text">
+      Then God said, “Let the earth bring forth vegetation…” And the earth produced plants yielding seed according to their kinds.
+    </div>
+  </div>
+
+  <div class="day">
+    <h2>Day 4 — Sun, Moon & Stars</h2>
+    <div class="preview">Genesis 1:14–19</div>
+    <div class="full-text">
+      God made two great lights—the greater light to govern the day and the lesser light to govern the night. He also made the stars.  <div class="day">
+    <h2>Day 5 — Birds & Sea Creatures</h2>
+    <div class="preview">Genesis 1:20–23</div>
+    <div class="full-text">
+      And God said, “Let the waters teem with living creatures, and let birds fly above the earth across the vault of the sky.” 
+      So God created the great creatures of the sea and every living thing with which the water teems and that moves about in it, 
+      and every winged bird according to its kind. And God saw that it was good.
+    </div>
+  </div>
+
+  <div class="day">
+    <h2>Day 6 — Animals & Humanity</h2>
+    <div class="preview">Genesis 1:24–27</div>
+    <div class="full-text">
+      Then God said, “Let the land produce living creatures according to their kinds…” 
+      So God created mankind in His own image, in the image of God He created them; male and female He created them.
+    </div>
+  </div>
+
+  <div class="day">
+    <h2>Day 7 — Rest</h2>
+    <div class="preview">Genesis 2:2–3</div>
+    <div class="full-text">
+      By the seventh day God had finished the work He had been doing; so on the seventh day He rested from all His work. 
+      Then God blessed the seventh day and made it holy.
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  ✨ Psalm 19:1 — “The heavens declare the glory of God; the skies proclaim the work of His hands.”
+</footer>
+
 </div>
-<button onclick="startAR()">Start AR</button>
-<a-scene
-  embedded
-  vr-mode-ui="enabled: false"
-  renderer="logarithmicDepthBuffer: true;"
-  arjs="sourceType: webcam; facingMode: environment; debugUIEnabled: false;"
->
-  <a-camera gps-camera rotation-reader></a-camera>
-  <a-entity id="sky"></a-entity>
-</a-scene>
 
 <script>
-  function startAR() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(() => {
-      document.getElementById("status").innerText = "Camera enabled";
-    })
-    .catch(() => {
-      document.getElementById("status").innerText = "Camera permission denied";
-    });
-}
-// =====================
-// STAR DATA (expandable)
-// =====================
-const stars = [
-  { name:"Betelgeuse", ra:88.8, dec:7.4, mag:0.5, constellation:"Orion" },
-  { name:"Rigel", ra:78.6, dec:-8.2, mag:0.1, constellation:"Orion" },
-  { name:"Bellatrix", ra:81.2, dec:6.3, mag:1.6, constellation:"Orion" },
-  { name:"Saiph", ra:86.9, dec:-9.7, mag:2.0, constellation:"Orion" }
-];
+<script>
+async function searchBible() {
+  const query = document.getElementById("searchInput").value.trim();
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "Searching...";
 
-// Orion star connections (indexes in stars array)
-const constellationLines = {
-  Orion: [[0,1],[1,2],[2,3]]
-};
+  if (!query) return;
 
-let userLat = null;
-let userLon = null;
+  try {
+    const response = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`);
+    const data = await response.json();
 
-// =====================
-// iOS Motion Permission
-// =====================
-function requestPermission() {
-  if (typeof DeviceOrientationEvent !== "undefined" &&
-      typeof DeviceOrientationEvent.requestPermission === "function") {
-    DeviceOrientationEvent.requestPermission()
-      .then(response => {
-        if (response === "granted") {
-          document.getElementById("status").innerText = "Motion enabled";
-        }
-      })
-      .catch(console.error);
+    if (data.verses) {
+      resultsDiv.innerHTML = "";
+      data.verses.forEach(v => {
+        const div = document.createElement("div");
+        div.className = "result";
+        div.innerHTML = `<strong>${v.book_name} ${v.chapter}:${v.verse}</strong><br>${v.text}`;
+        resultsDiv.appendChild(div);
+      });
+    } else {
+      resultsDiv.innerHTML = "No results found.";
+    }
+  } catch {
+    resultsDiv.innerHTML = "Error fetching scripture.";
   }
 }
+</script>
 
-// =====================
-// GET USER LOCATION
-// =====================
-navigator.geolocation.getCurrentPosition(
-  pos => {
-    userLat = pos.coords.latitude;
-    userLon = pos.coords.longitude;
-    document.getElementById("status").innerText =
-      `Location acquired`;
-    renderSky();
-  },
-  err => {
-    document.getElementById("status").innerText =
-      "Location permission denied";
+<script>
+function addMessage(text, sender) {
+  const chatbox = document.getElementById("chatbox");
+  const msg = document.createElement("div");
+  msg.className = "message " + sender;
+  msg.textContent = text;
+  chatbox.appendChild(msg);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+async function askBible() {
+  const input = document.getElementById("userInput");
+  const question = input.value.trim();
+  if (!question) return;
+
+  addMessage("You: " + question, "user");
+  input.value = "";
+
+  // If user asks for a verse reference like John 3:16
+  if (/\d/.test(question)) {
+    try {
+      const response = await fetch(`https://bible-api.com/${encodeURIComponent(question)}`);
+      const data = await response.json();
+      addMessage(data.text || "Verse not found.", "bot");
+      return;
+    } catch {
+      addMessage("Sorry, I couldn't fetch that verse.", "bot");
+      return;
+    }
   }
-);
 
-// =====================
-// RENDER SKY
-// =====================
-function renderSky() {
-  const sky = document.querySelector("#sky");
-  const now = new Date();
-
-  const starPositions = [];
-
-  stars.forEach((star, i) => {
-    const { altitude, azimuth } =
-      raDecToAltAz(star.ra, star.dec, userLat, userLon, now);
-
-    if (altitude <= 0) return; // hide stars below horizon
-
-    const pos = skyToXYZ(azimuth, altitude, 5);
-    starPositions[i] = pos;
-
-    const s = document.createElement("a-sphere");
-    s.setAttribute("position", `${pos.x} ${pos.y} ${pos.z}`);
-    s.setAttribute("radius", Math.max(0.02, 0.1 - star.mag * 0.02));
-    s.setAttribute("color", "white");
-    sky.appendChild(s);
-  });
-
-  // Draw constellation lines
-  Object.keys(constellationLines).forEach(name => {
-    constellationLines[name].forEach(pair => {
-      const start = starPositions[pair[0]];
-      const end = starPositions[pair[1]];
-      if (!start || !end) return;
-
-      const line = document.createElement("a-entity");
-      line.setAttribute(
-        "line",
-        `start: ${start.x} ${start.y} ${start.z};
-         end: ${end.x} ${end.y} ${end.z};
-         color: white`
-      );
-      sky.appendChild(line);
-    });
-  });
-}
-
-// =====================
-// ASTRONOMY MATH
-// =====================
-function raDecToAltAz(ra, dec, lat, lon, date) {
-  const rad = Math.PI / 180;
-  const d = (date - new Date(Date.UTC(2000,0,1,12))) / 86400000;
-
-  const gmst = 280.46061837 + 360.98564736629 * d;
-  const lst = (gmst + lon) % 360;
-
-  const ha = (lst - ra) * rad;
-  const decRad = dec * rad;
-  const latRad = lat * rad;
-
-  const alt = Math.asin(
-    Math.sin(decRad) * Math.sin(latRad) +
-    Math.cos(decRad) * Math.cos(latRad) * Math.cos(ha)
-  );
-
-  const az = Math.acos(
-    (Math.sin(decRad) - Math.sin(alt) * Math.sin(latRad)) /
-    (Math.cos(alt) * Math.cos(latRad))
-  );
-
-  return {
-    altitude: alt / rad,
-    azimuth: az / rad
+  // Basic Bible Q&A responses
+  const answers = {
+    "who is jesus": "Jesus Christ is the Son of God and the Savior of the world (John 3:16).",
+    "what is salvation": "Salvation is God's gift of eternal life through faith in Jesus Christ (Ephesians 2:8-9).",
+    "what is faith": "Faith is trusting in God and His promises (Hebrews 11:1).",
+    "what is the bible": "The Bible is the inspired Word of God, containing the Old and New Testaments."
   };
-}
 
-function skyToXYZ(az, alt, dist) {
-  const rad = Math.PI / 180;
-  return {
-    x: dist * Math.cos(alt * rad) * Math.sin(az * rad),
-    y: dist * Math.sin(alt * rad),
-    z: -dist * Math.cos(alt * rad) * Math.cos(az * rad)
-  };
+  const lower = question.toLowerCase();
+
+  for (let key in answers) {
+    if (lower.includes(key)) {
+      addMessage(answers[key], "bot");
+      return;
+    }
+  }
+
+  addMessage("Try asking for a verse like 'John 3:16' or a Bible question.", "bot");
 }
+</script>
+/* Tap-to-expand functionality */
+document.querySelectorAll('.day').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('active');
+  });
+});
 </script>
 
 </body>
